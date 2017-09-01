@@ -1,6 +1,6 @@
 name: apache2
 summary: Apache HTTP Server metapackage
-maintainer: Liam Young <liam.young@canonical.com>
+maintainer: Apache Charmers <apache2-charmers@lists.launchpad.net>
 description: |
   The Apache Software Foundation's goal is to build a secure, efficient
   and extensible HTTP server as standards-compliant open source

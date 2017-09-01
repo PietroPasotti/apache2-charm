@@ -299,6 +299,7 @@ def install_hook():
         os.mkdir(default_apache2_service_config_dir, 0600)
     apt_update(fatal=True)
     apt_get_install("python-jinja2")
+    apt_get_install("python-openssl")
     apt_get_install("python-pyasn1")
     apt_get_install("python-pyasn1-modules")
     apt_get_install("python-yaml")

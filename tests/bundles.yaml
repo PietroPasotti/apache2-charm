@@ -1,0 +1,10 @@
+apache2-bundle: 
+  services: 
+    apache2: 
+      charm: apache2
+      num_units: 1
+      annotations: 
+        "gui-x": "300"
+        "gui-y": "300"
+  relations: []
+  series: trusty

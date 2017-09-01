@@ -1,0 +1,7 @@
+<Proxy balancer://bar>
+BalancerMember http://10.11.12.14 timeout=123
+BalancerMember http://10.11.12.15 timeout=123
+
+    ProxySet lbmethod=byrequests
+    RequestHeader set X-Balancer-Name "bar"
+</Proxy>

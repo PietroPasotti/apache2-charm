@@ -1,0 +1,11 @@
+#---------------------------------------------------
+# This file is Juju managed
+#---------------------------------------------------
+define service {
+    use                             active-service
+    host_name                       somecontext-some-unit
+    service_description             somecontext-some-unit Check Apache Vhost
+    check_command                   check_nrpe!check_vhost
+    servicegroups                   somecontext
+
+}

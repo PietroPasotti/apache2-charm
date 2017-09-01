@@ -1,0 +1,10 @@
+<IfModule mpm_worker_module>
+    StartServers          {{ mpm_startservers }}
+    MinSpareThreads       {{ mpm_minsparethreads }}
+    MaxSpareThreads       {{ mpm_maxsparethreads }} 
+    ThreadLimit           {{ mpm_threadlimit }}
+    ThreadsPerChild       {{ mpm_threadsperchild }}
+    ServerLimit           {{ mpm_serverlimit }}
+    MaxClients            {{ mpm_maxclients }}
+    MaxRequestsPerChild   {{ mpm_maxrequestsperchild }}
+</IfModule>

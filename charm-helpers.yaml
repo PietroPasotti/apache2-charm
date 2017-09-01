@@ -1,0 +1,4 @@
+include:
+    - core.hookenv
+    - fetch
+    - contrib.charmsupport

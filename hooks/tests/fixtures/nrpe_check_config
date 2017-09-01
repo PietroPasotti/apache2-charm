@@ -1,0 +1,2 @@
+# check Apache vhosts
+command[check_vhost]=/usr/lib/nagios/plugins/check_http ['foo', 'bar']

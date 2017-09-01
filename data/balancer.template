@@ -1,0 +1,7 @@
+<Proxy balancer://{{ balancer_name }}>
+{% for host in balancer_addresses -%}
+    BalancerMember http://{{ host }} timeout={{ lb_balancer_timeout }}
+{% endfor %}
+    ProxySet lbmethod=byrequests
+    RequestHeader set X-Balancer-Name "{{ balancer_name }}"
+</Proxy>

@@ -10,6 +10,7 @@ description: |
   filtering, many flexible authentication schemes, and more.
 tags: ["app-servers"]
 series:
+  - bionic
   - xenial
   - trusty
 provides:

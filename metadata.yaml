@@ -10,9 +10,9 @@ description: |
   filtering, many flexible authentication schemes, and more.
 tags: ["app-servers"]
 series:
-  - bionic
   - xenial
   - trusty
+  - bionic
 provides:
   nrpe-external-master:
     interface: nrpe-external-master

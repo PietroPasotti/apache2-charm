@@ -11,13 +11,13 @@
         delaycompress
         notifempty
 {%- if use_rsyslog %}
-        create 640 syslog adm
+        create 644 syslog adm
         sharedscripts
         postrotate
                 reload rsyslog >/dev/null 2>&1 || true
         endscript
 {%- else %}
-        create 640 root adm
+        create 644 root adm
         sharedscripts
         postrotate
                 /etc/init.d/apache2 reload > /dev/null

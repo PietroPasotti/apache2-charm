@@ -2,3 +2,5 @@ include:
     - core.hookenv
     - fetch
     - contrib.charmsupport
+    - osplatform
+destination: hooks/charmhelpers

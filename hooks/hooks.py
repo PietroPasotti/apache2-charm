@@ -816,7 +816,7 @@ class ApacheWebsites:
         self.relations = relations
 
     def write_configs(self):
-        for key, relation in list(self.relations.items()):
+        for key, relation in self.relations.items():
             config_file = site_filename(key)
             site_config = relation['site_config']
             if site_config is None:
@@ -826,8 +826,7 @@ class ApacheWebsites:
                     output.write(site_config)
 
     def iter_enabled_sites(self):
-        rels = list(self.relations.items())
-        return ((k, v) for k, v in rels if v['enabled'])
+        return ((k, v) for k, v in self.relations.items() if v['enabled'])
 
     def enable_sites(self):
         enabled_sites = [k for k, v in self.iter_enabled_sites()]
@@ -837,7 +836,7 @@ class ApacheWebsites:
         subprocess.check_call(['/usr/sbin/a2ensite'] + enabled_sites)
 
     def disable_sites(self):
-        disabled_sites = [k for k, v in list(self.relations.items())
+        disabled_sites = [k for k, v in self.relations.items()
                           if not v['enabled']]
         disabled_sites.sort()
         if len(disabled_sites) == 0:

@@ -455,7 +455,7 @@ class HelpersTest(TestCase):
         is_apache24.return_value = True
         with patch('hooks.default_apache24_config_dir', self.tempdir):
             hooks.write_balancer_config(balancer_config)
-        for balancer in list(balancer_config.keys()):
+        for balancer in balancer_config.keys():
             basename = '%s.balancer' % balancer
             exp_path = os.path.join(FIXTURES, basename)
             res_path = os.path.join(self.tempdir, "{}.conf".format(basename))
@@ -468,7 +468,7 @@ class HelpersTest(TestCase):
         is_apache24.return_value = False
         with patch('hooks.default_apache22_config_dir', self.tempdir):
             hooks.write_balancer_config(balancer_config)
-        for balancer in list(balancer_config.keys()):
+        for balancer in balancer_config.keys():
             basename = '%s.balancer' % balancer
             exp_path = os.path.join(FIXTURES, basename)
             res_path = os.path.join(self.tempdir, basename)

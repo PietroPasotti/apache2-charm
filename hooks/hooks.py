@@ -357,7 +357,7 @@ def get_reverseproxy_data(relation='reverseproxy'):
         host = unit_data['private-address']
         if unit_type in reverseproxy_data:
             continue
-        for config_setting in list(unit_data.keys()):
+        for config_setting in unit_data.keys():
             if config_setting in ("__unit__", "__relid__"):
                 continue
             config_key = '%s_%s' % (unit_type,
@@ -428,7 +428,7 @@ def write_balancer_config(unit_dict):
     from jinja2 import Environment, FileSystemLoader
     template_env = Environment(loader=FileSystemLoader(os.path.join(
         os.environ['CHARM_DIR'], 'data')))
-    for balancer_name in list(unit_dict.keys()):
+    for balancer_name in unit_dict.keys():
         balancer_host_file = conf_filename('{}.balancer'.format(balancer_name))
         templ_vars = {
             'balancer_name': balancer_name,

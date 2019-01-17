@@ -455,7 +455,7 @@ class HelpersTest(TestCase):
         is_apache24.return_value = True
         with patch('hooks.default_apache24_config_dir', self.tempdir):
             hooks.write_balancer_config(balancer_config)
-        for balancer in balancer_config.keys():
+        for balancer in list(balancer_config.keys()):
             basename = '%s.balancer' % balancer
             exp_path = os.path.join(FIXTURES, basename)
             res_path = os.path.join(self.tempdir, "{}.conf".format(basename))
@@ -468,7 +468,7 @@ class HelpersTest(TestCase):
         is_apache24.return_value = False
         with patch('hooks.default_apache22_config_dir', self.tempdir):
             hooks.write_balancer_config(balancer_config)
-        for balancer in balancer_config.keys():
+        for balancer in list(balancer_config.keys()):
             basename = '%s.balancer' % balancer
             exp_path = os.path.join(FIXTURES, basename)
             res_path = os.path.join(self.tempdir, basename)
@@ -516,7 +516,7 @@ class HooksTest(TestCase):
         self.assertEqual(result, 'some result')
         exists.assert_called_with(hooks.default_apache2_service_config_dir)
         mkdir.assert_called_with(hooks.default_apache2_service_config_dir,
-                                 0600)
+                                 0o600)
         apt_get_install.assert_has_calls([
             call('python-jinja2'),
             call('python-pyasn1'),

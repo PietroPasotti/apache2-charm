@@ -128,7 +128,7 @@ class VhostConfigRelationTest(TestCase):
         mock_relations_of_type.return_value = [
             {'vhosts': yaml.dump([{'port': "5555"}])}]
         mock_config_get.return_value = {}
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             KeyError, "template", hooks.update_vhost_config_relation)
 
     @patch('hooks.log')

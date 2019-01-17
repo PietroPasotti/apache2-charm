@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import errno
 import os
@@ -100,8 +100,8 @@ def run(command, *args, **kwargs):
     try:
         output = subprocess.check_output(command, *args, **kwargs)
         return output
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         raise
 
 
@@ -216,7 +216,7 @@ def is_selfsigned_cert_stale(config, cert_file, key_file):
     # Common Name
     from OpenSSL import crypto
     cert = crypto.load_certificate(
-        crypto.FILETYPE_PEM, file(cert_file).read())
+        crypto.FILETYPE_PEM, open(cert_file, 'r').read())
     cn = cert.get_subject().commonName
     if config['servername'] != cn:
         return True
@@ -238,7 +238,7 @@ def is_selfsigned_cert_stale(config, cert_file, key_file):
                 extension.get_data(), asn1Spec=rfc2459.SubjectAltName())[0]
             for name in names:
                 cert_addresses.add(str(name.getComponent()))
-        except:
+        except Exception:
             pass
     if cert_addresses != unit_addresses:
         log("subjAltName: Cert (%s) != Unit (%s), assuming stale" % (
@@ -292,11 +292,11 @@ def install_hook():
     apt_source = config_get('apt-source') or ''
     apt_key_id = config_get('apt-key-id') or False
     if apt_source and apt_key_id:
-        print apt_source + " and " + apt_key_id
+        print(apt_source + " and " + apt_key_id)
         add_source(apt_source, apt_key_id)
         open('config.apt-source', 'w').write(apt_source)
     if not os.path.exists(default_apache2_service_config_dir):
-        os.mkdir(default_apache2_service_config_dir, 0600)
+        os.mkdir(default_apache2_service_config_dir, 0o600)
     apt_update(fatal=True)
     apt_get_install("python-jinja2")
     apt_get_install("python-openssl")
@@ -325,7 +325,7 @@ def ensure_extra_packages():
     if extra:
         install_status = apt_get_install(extra)
         if install_status == 0:
-            ensure_package_status(filter(None, extra.split(' ')),
+            ensure_package_status([_f for _f in extra.split(' ') if _f],
                                   config_get('package_status'))
 
 
@@ -357,7 +357,7 @@ def get_reverseproxy_data(relation='reverseproxy'):
         host = unit_data['private-address']
         if unit_type in reverseproxy_data:
             continue
-        for config_setting in unit_data.keys():
+        for config_setting in list(unit_data.keys()):
             if config_setting in ("__unit__", "__relid__"):
                 continue
             config_key = '%s_%s' % (unit_type,
@@ -428,7 +428,7 @@ def write_balancer_config(unit_dict):
     from jinja2 import Environment, FileSystemLoader
     template_env = Environment(loader=FileSystemLoader(os.path.join(
         os.environ['CHARM_DIR'], 'data')))
-    for balancer_name in unit_dict.keys():
+    for balancer_name in list(unit_dict.keys()):
         balancer_host_file = conf_filename('{}.balancer'.format(balancer_name))
         templ_vars = {
             'balancer_name': balancer_name,
@@ -546,7 +546,8 @@ def create_vhost(port, protocol=None, config_key=None, template_str=None,
         template_str = config_data[config_key]
     from jinja2 import Template
     template = Template(str(base64.b64decode(template_str)))
-    template_data = dict(config_data.items() + relationship_data.items())
+    all_items = list(config_data.items()) + list(relationship_data.items())
+    template_data = dict(all_items)
     if config_data.get('vhost_template_vars'):
         extra_vars = ast.literal_eval(config_data['vhost_template_vars'])
         template_data.update(extra_vars)
@@ -648,7 +649,7 @@ def config_changed():
     create_security()
 
     ports = {'http': 80, 'https': 443}
-    for protocol, port in ports.iteritems():
+    for protocol, port in ports.items():
         if create_vhost(
                 port,
                 protocol=protocol,
@@ -718,7 +719,7 @@ def config_changed():
 
         # Tighten permissions on private key file.
         if os.path.exists(key_file):
-            os.chmod(key_file, 0440)
+            os.chmod(key_file, 0o440)
             os.chown(key_file, pwd.getpwnam('root').pw_uid,
                      grp.getgrnam('ssl-cert').gr_gid)
 
@@ -756,11 +757,11 @@ def config_changed():
 
     if config_data['openid_provider']:
         if not os.path.exists('/etc/apache2/security'):
-            os.mkdir('/etc/apache2/security', 0755)
+            os.mkdir('/etc/apache2/security', 0o755)
         with open('/etc/apache2/security/allowed-ops.txt', 'w') as f:
             f.write(config_data['openid_provider'].replace(',', '\n'))
             f.write('\n')
-            os.chmod(key_file, 0444)
+            os.chmod(key_file, 0o444)
 
     all_ports.update(update_vhost_config_relation())
     ensure_ports(all_ports)
@@ -815,7 +816,7 @@ class ApacheWebsites:
         self.relations = relations
 
     def write_configs(self):
-        for key, relation in self.relations.items():
+        for key, relation in list(self.relations.items()):
             config_file = site_filename(key)
             site_config = relation['site_config']
             if site_config is None:
@@ -825,7 +826,8 @@ class ApacheWebsites:
                     output.write(site_config)
 
     def iter_enabled_sites(self):
-        return ((k, v) for k, v in self.relations.items() if v['enabled'])
+        rels = list(self.relations.items())
+        return ((k, v) for k, v in rels if v['enabled'])
 
     def enable_sites(self):
         enabled_sites = [k for k, v in self.iter_enabled_sites()]
@@ -835,7 +837,7 @@ class ApacheWebsites:
         subprocess.check_call(['/usr/sbin/a2ensite'] + enabled_sites)
 
     def disable_sites(self):
-        disabled_sites = [k for k, v in self.relations.items()
+        disabled_sites = [k for k, v in list(self.relations.items())
                           if not v['enabled']]
         disabled_sites.sort()
         if len(disabled_sites) == 0:
@@ -860,7 +862,7 @@ class ApacheWebsites:
         extra_ports.discard(443)
         extra_ports_conf = conf_filename('extra_ports')
         if len(extra_ports) > 0:
-            with file(extra_ports_conf, 'w') as f:
+            with open(extra_ports_conf, 'w') as f:
                 for port in sorted(extra_ports):
                     f.write('Listen {}\n'.format(port))
             conf_enable('extra_ports')
@@ -1008,7 +1010,7 @@ def get_log_files():
                     access_logs.append(line.split()[1])
                 elif 'ErrorLog' in line:
                     error_logs.append(line.split()[1])
-        except:
+        except Exception:
             pass
     return access_logs, error_logs
 
@@ -1076,8 +1078,9 @@ def main(hook_name):
     elif hook_name == "logs-relation-joined":
         logs_relation_joined()
     else:
-        print "Unknown hook"
+        print("Unknown hook")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     hook_name = os.path.basename(sys.argv[0])

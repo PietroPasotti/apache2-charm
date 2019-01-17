@@ -158,6 +158,22 @@ CLOUD_ARCHIVE_POCKETS = {
     'queens/proposed': 'xenial-proposed/queens',
     'xenial-queens/proposed': 'xenial-proposed/queens',
     'xenial-proposed/queens': 'xenial-proposed/queens',
+    # Rocky
+    'rocky': 'bionic-updates/rocky',
+    'bionic-rocky': 'bionic-updates/rocky',
+    'bionic-rocky/updates': 'bionic-updates/rocky',
+    'bionic-updates/rocky': 'bionic-updates/rocky',
+    'rocky/proposed': 'bionic-proposed/rocky',
+    'bionic-rocky/proposed': 'bionic-proposed/rocky',
+    'bionic-proposed/rocky': 'bionic-proposed/rocky',
+    # Stein
+    'stein': 'bionic-updates/stein',
+    'bionic-stein': 'bionic-updates/stein',
+    'bionic-stein/updates': 'bionic-updates/stein',
+    'bionic-updates/stein': 'bionic-updates/stein',
+    'stein/proposed': 'bionic-proposed/stein',
+    'bionic-stein/proposed': 'bionic-proposed/stein',
+    'bionic-proposed/stein': 'bionic-proposed/stein',
 }
 
 
@@ -179,6 +195,18 @@ def filter_installed_packages(packages):
                 level='WARNING')
             _pkgs.append(package)
     return _pkgs
+
+
+def filter_missing_packages(packages):
+    """Return a list of packages that are installed.
+
+    :param packages: list of packages to evaluate.
+    :returns list: Packages that are installed.
+    """
+    return list(
+        set(packages) -
+        set(filter_installed_packages(packages))
+    )
 
 
 def apt_cache(in_memory=True, progress=None):
@@ -240,6 +268,14 @@ def apt_purge(packages, fatal=False):
     _run_apt_command(cmd, fatal)
 
 
+def apt_autoremove(purge=True, fatal=False):
+    """Purge one or more packages."""
+    cmd = ['apt-get', '--assume-yes', 'autoremove']
+    if purge:
+        cmd.append('--purge')
+    _run_apt_command(cmd, fatal)
+
+
 def apt_mark(packages, mark, fatal=False):
     """Flag one or more packages using apt-mark."""
     log("Marking {} as {}".format(packages, mark))
@@ -266,7 +302,7 @@ def apt_unhold(packages, fatal=False):
 def import_key(key):
     """Import an ASCII Armor key.
 
-    /!\ A Radix64 format keyid is also supported for backwards
+    A Radix64 format keyid is also supported for backwards
     compatibility, but should never be used; the key retrieval
     mechanism is insecure and subject to man-in-the-middle attacks
     voiding all signature checks using that key.
@@ -307,7 +343,7 @@ def import_key(key):
         cmd = ['apt-key', 'adv', '--keyserver',
                'hkp://keyserver.ubuntu.com:80', '--recv-keys', key]
         try:
-            subprocess.check_call(cmd)
+            _run_with_retries(cmd)
         except subprocess.CalledProcessError:
             error = "Error importing PGP key '{}'".format(key)
             log(error)
@@ -426,6 +462,9 @@ def _add_apt_repository(spec):
 
     :param spec: the parameter to pass to add_apt_repository
     """
+    if '{series}' in spec:
+        series = lsb_release()['DISTRIB_CODENAME']
+        spec = spec.replace('{series}', series)
     _run_with_retries(['add-apt-repository', '--yes', spec])
 
 

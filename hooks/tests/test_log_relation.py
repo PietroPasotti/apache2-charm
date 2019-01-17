@@ -22,8 +22,8 @@ class TestLogRelation(TestCase):
 
         with mock.patch('hooks.open', m, create=True):
             access_logs, error_logs = hooks.get_log_files()
-            self.assertEquals('/var/log/apache2/access.log', access_logs[0])
-            self.assertEquals('/var/log/apache2/error.log', error_logs[0])
+            self.assertEqual('/var/log/apache2/access.log', access_logs[0])
+            self.assertEqual('/var/log/apache2/error.log', error_logs[0])
 
     @mock.patch('hooks.relation_ids')
     @mock.patch('hooks.relation_set')
@@ -33,10 +33,10 @@ class TestLogRelation(TestCase):
             get_log_files.return_value = ['myaccess_log'], ['myerror_log']
             hooks.logs_relation_joined()
             self.assertTrue(relation_set.called)
-            self.assertEquals({'files': 'myaccess_log\nmyerror_log',
-                               'types': 'apache_access\napache_error',
-                               },
-                              relation_set.call_args[1]['relation_settings'])
+            self.assertEqual({'files': 'myaccess_log\nmyerror_log',
+                              'types': 'apache_access\napache_error',
+                              },
+                             relation_set.call_args[1]['relation_settings'])
 
     @mock.patch('hooks.relation_ids')
     @mock.patch('hooks.relation_set')
@@ -48,7 +48,7 @@ class TestLogRelation(TestCase):
             get_log_files.return_value = ['myaccess_log'], ['myerror_log']
             hooks.logs_relation_joined()
             self.assertTrue(relation_set.called)
-            self.assertEquals({'files': 'myaccess_log\nmyerror_log',
-                               'types': 'apache_access\napache_error',
-                               },
-                              relation_set.call_args[1]['relation_settings'])
+            self.assertEqual({'files': 'myaccess_log\nmyerror_log',
+                              'types': 'apache_access\napache_error',
+                              },
+                             relation_set.call_args[1]['relation_settings'])

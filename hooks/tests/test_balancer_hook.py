@@ -516,7 +516,7 @@ class HooksTest(TestCase):
         self.assertEqual(result, 'some result')
         exists.assert_called_with(hooks.default_apache2_service_config_dir)
         mkdir.assert_called_with(hooks.default_apache2_service_config_dir,
-                                 0600)
+                                 0o600)
         apt_get_install.assert_has_calls([
             call('python-jinja2'),
             call('python-pyasn1'),

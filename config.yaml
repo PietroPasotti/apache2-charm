@@ -31,7 +31,7 @@ options:
        "reload" or "restart" - any other value will mean neither is executed
        after a config change (which may be desired, if you're running a
        production server and would rather handle these out of band). Note:
-       some variables like the mpm settings require a full restart to go into effect.
+       some variables like the mpm settings require a full restart to take effect.
   mpm_type:
     type: string
     default: 'worker'
@@ -81,7 +81,9 @@ options:
   mpm_threadlimit:
     type: int
     default: 64
-    description: Sets the upper limit on the configurable number of threads per child process.  Changing this value requires a full restart.
+    description: >
+      Sets the upper limit on the configurable number of threads per child process.
+      Changing this value requires a full restart.
   mpm_threadsperchild:
     type: int
     default: 64
@@ -89,15 +91,21 @@ options:
   mpm_serverlimit:
     type: int
     default: 128
-   description: Upper limit on configurable number of processes.  Changing this value requires a full restart.
+    description: >
+     Upper limit on configurable number of processes.
+     Changing this value requires a full restart.
   mpm_maxclients:
     type: int
     default: 2048
-    description: Maximum number of connections that will be processed simultaneously.  As of version 2.3.13, this is known as MaxRequestWorkers.
+    description: >
+      Maximum number of connections that will be processed simultaneously.
+      As of version 2.3.13, this is known as MaxRequestWorkers.
   mpm_maxrequestsperchild:
     type: int
     default: 0
-    description: Limit on the number of connections that an individual child server will handle during its life.  As of version 2.3.9, this is known as MaxConnectionsPerChild.
+    description: >
+      Limit on the number of connections that an individual child server will handle during its life.
+      As of version 2.3.9, this is known as MaxConnectionsPerChild.
   nagios_context:
     default: "juju"
     type: string

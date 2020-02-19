@@ -57,7 +57,8 @@ def apt_get_install(package=None):
     if package is None:
         return False
     cmd_line = ['apt-get', '-y', 'install', '-qq']
-    cmd_line.append(package)
+    for pkg in re.split(' |,'):
+        cmd_line.append(pkg)
     return subprocess.call(cmd_line)
 
 

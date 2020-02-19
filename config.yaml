@@ -195,7 +195,10 @@ options:
     default: "On"
   extra_packages:
     type: string
-    description: List of extra packages to be installed (e.g. commercial GeoIP package)
+    description: |
+        List of extra packages to be installed (e.g. commercial GeoIP package).
+        This can be a string of packages space or comma separated.
+        i.e "screen cowsay" or "screen,cowsay".
     default: ""
   openid_provider:
     type: string

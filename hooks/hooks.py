@@ -57,7 +57,7 @@ def apt_get_install(package=None):
     if package is None:
         return False
     cmd_line = ['apt-get', '-y', 'install', '-qq']
-    for pkg in re.split(' |,'):
+    for pkg in re.split(' |,', package):
         cmd_line.append(pkg)
     return subprocess.call(cmd_line)
 
@@ -78,7 +78,8 @@ def apt_get_purge(packages=None):
     if packages is None:
         return False
     cmd_line = ['apt-get', '-y', 'purge', '-qq']
-    cmd_line.append(packages)
+    for pkg in re.split(' |,', packages):
+        cmd_line.append(pkg)
     return subprocess.call(cmd_line)
 
 

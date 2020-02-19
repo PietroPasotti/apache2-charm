@@ -135,7 +135,7 @@ class HelpersTest(TestCase):
 
         self.assertEqual(result, 'some result')
         mock_call.assert_called_with(['apt-get', '-y', 'install', '-qq',
-                                      'foo bar'])
+                                      'foo', 'bar'])
 
     @patch('subprocess.call')
     def test_installs_nothing_if_package_not_provided(self, mock_call):
@@ -150,7 +150,7 @@ class HelpersTest(TestCase):
 
         self.assertEqual(result, 'some result')
         mock_call.assert_called_with(['apt-get', '-y', 'purge', '-qq',
-                                      'foo bar'])
+                                      'foo', 'bar'])
 
     @patch('subprocess.call')
     def test_purges_nothing_if_package_not_provided(self, mock_call):
@@ -519,6 +519,7 @@ class HooksTest(TestCase):
                                  0o600)
         apt_get_install.assert_has_calls([
             call('python-jinja2'),
+            call('python-openssl'),
             call('python-pyasn1'),
             call('python-pyasn1-modules'),
             call('python-yaml'),
@@ -545,6 +546,7 @@ class HooksTest(TestCase):
         self.assertEqual(result, 'some result')
         apt_get_install.assert_has_calls([
             call('python-jinja2'),
+            call('python-openssl'),
             call('python-pyasn1'),
             call('python-pyasn1-modules'),
             call('python-yaml'),
@@ -573,6 +575,7 @@ class HooksTest(TestCase):
         self.assertFalse(mkdir.called)
         apt_get_install.assert_has_calls([
             call('python-jinja2'),
+            call('python-openssl'),
             call('python-pyasn1'),
             call('python-pyasn1-modules'),
             call('python-yaml'),

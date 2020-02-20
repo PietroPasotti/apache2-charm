@@ -34,6 +34,8 @@ import errno
 import tempfile
 from subprocess import CalledProcessError
 
+from charmhelpers import deprecate
+
 import six
 if not six.PY3:
     from UserDict import UserDict
@@ -49,6 +51,11 @@ DEBUG = "DEBUG"
 TRACE = "TRACE"
 MARKER = object()
 SH_MAX_ARG = 131071
+
+
+RANGE_WARNING = ('Passing NO_PROXY string that includes a cidr. '
+                 'This may not be compatible with software you are '
+                 'running in your shell.')
 
 cache = {}
 
@@ -109,6 +116,24 @@ def log(message, level=None):
             if level:
                 message = "{}: {}".format(level, message)
             message = "juju-log: {}".format(message)
+            print(message, file=sys.stderr)
+        else:
+            raise
+
+
+def function_log(message):
+    """Write a function progress message"""
+    command = ['function-log']
+    if not isinstance(message, six.string_types):
+        message = repr(message)
+    command += [message[:SH_MAX_ARG]]
+    # Missing function-log should not cause failures in unit tests
+    # Send function_log output to stderr
+    try:
+        subprocess.call(command)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            message = "function-log: {}".format(message)
             print(message, file=sys.stderr)
         else:
             raise
@@ -941,9 +966,23 @@ def charm_dir():
     return os.environ.get('CHARM_DIR')
 
 
+def cmd_exists(cmd):
+    """Return True if the specified cmd exists in the path"""
+    return any(
+        os.access(os.path.join(path, cmd), os.X_OK)
+        for path in os.environ["PATH"].split(os.pathsep)
+    )
+
+
 @cached
+@deprecate("moved to function_get()", log=log)
 def action_get(key=None):
-    """Gets the value of an action parameter, or all key/value param pairs"""
+    """
+    .. deprecated:: 0.20.7
+       Alias for :func:`function_get`.
+
+    Gets the value of an action parameter, or all key/value param pairs.
+    """
     cmd = ['action-get']
     if key is not None:
         cmd.append(key)
@@ -952,19 +991,71 @@ def action_get(key=None):
     return action_data
 
 
+@cached
+def function_get(key=None):
+    """Gets the value of an action parameter, or all key/value param pairs"""
+    cmd = ['function-get']
+    # Fallback for older charms.
+    if not cmd_exists('function-get'):
+        cmd = ['action-get']
+
+    if key is not None:
+        cmd.append(key)
+    cmd.append('--format=json')
+    function_data = json.loads(subprocess.check_output(cmd).decode('UTF-8'))
+    return function_data
+
+
+@deprecate("moved to function_set()", log=log)
 def action_set(values):
-    """Sets the values to be returned after the action finishes"""
+    """
+    .. deprecated:: 0.20.7
+       Alias for :func:`function_set`.
+
+    Sets the values to be returned after the action finishes.
+    """
     cmd = ['action-set']
     for k, v in list(values.items()):
         cmd.append('{}={}'.format(k, v))
     subprocess.check_call(cmd)
 
 
-def action_fail(message):
-    """Sets the action status to failed and sets the error message.
+def function_set(values):
+    """Sets the values to be returned after the function finishes"""
+    cmd = ['function-set']
+    # Fallback for older charms.
+    if not cmd_exists('function-get'):
+        cmd = ['action-set']
 
-    The results set by action_set are preserved."""
+    for k, v in list(values.items()):
+        cmd.append('{}={}'.format(k, v))
+    subprocess.check_call(cmd)
+
+
+@deprecate("moved to function_fail()", log=log)
+def action_fail(message):
+    """
+    .. deprecated:: 0.20.7
+       Alias for :func:`function_fail`.
+
+    Sets the action status to failed and sets the error message.
+
+    The results set by action_set are preserved.
+    """
     subprocess.check_call(['action-fail', message])
+
+
+def function_fail(message):
+    """Sets the function status to failed and sets the error message.
+
+    The results set by function_set are preserved."""
+    cmd = ['function-fail']
+    # Fallback for older charms.
+    if not cmd_exists('function-fail'):
+        cmd = ['action-fail']
+    cmd.append(message)
+
+    subprocess.check_call(cmd)
 
 
 def action_name():
@@ -972,14 +1063,29 @@ def action_name():
     return os.environ.get('JUJU_ACTION_NAME')
 
 
+def function_name():
+    """Get the name of the currently executing function."""
+    return os.environ.get('JUJU_FUNCTION_NAME') or action_name()
+
+
 def action_uuid():
     """Get the UUID of the currently executing action."""
     return os.environ.get('JUJU_ACTION_UUID')
 
 
+def function_id():
+    """Get the ID of the currently executing function."""
+    return os.environ.get('JUJU_FUNCTION_ID') or action_uuid()
+
+
 def action_tag():
     """Get the tag for the currently executing action."""
     return os.environ.get('JUJU_ACTION_TAG')
+
+
+def function_tag():
+    """Get the tag for the currently executing function."""
+    return os.environ.get('JUJU_FUNCTION_TAG') or action_tag()
 
 
 def status_set(workload_state, message):
@@ -1414,3 +1520,72 @@ def unit_doomed(unit=None):
     # I don't think 'dead' units ever show up in the goal-state, but
     # check anyway in addition to 'dying'.
     return units[unit]['status'] in ('dying', 'dead')
+
+
+def env_proxy_settings(selected_settings=None):
+    """Get proxy settings from process environment variables.
+
+    Get charm proxy settings from environment variables that correspond to
+    juju-http-proxy, juju-https-proxy and juju-no-proxy (available as of 2.4.2,
+    see lp:1782236) in a format suitable for passing to an application that
+    reacts to proxy settings passed as environment variables. Some applications
+    support lowercase or uppercase notation (e.g. curl), some support only
+    lowercase (e.g. wget), there are also subjectively rare cases of only
+    uppercase notation support. no_proxy CIDR and wildcard support also varies
+    between runtimes and applications as there is no enforced standard.
+
+    Some applications may connect to multiple destinations and expose config
+    options that would affect only proxy settings for a specific destination
+    these should be handled in charms in an application-specific manner.
+
+    :param selected_settings: format only a subset of possible settings
+    :type selected_settings: list
+    :rtype: Option(None, dict[str, str])
+    """
+    SUPPORTED_SETTINGS = {
+        'http': 'HTTP_PROXY',
+        'https': 'HTTPS_PROXY',
+        'no_proxy': 'NO_PROXY',
+        'ftp': 'FTP_PROXY'
+    }
+    if selected_settings is None:
+        selected_settings = SUPPORTED_SETTINGS
+
+    selected_vars = [v for k, v in SUPPORTED_SETTINGS.items()
+                     if k in selected_settings]
+    proxy_settings = {}
+    for var in selected_vars:
+        var_val = os.getenv(var)
+        if var_val:
+            proxy_settings[var] = var_val
+            proxy_settings[var.lower()] = var_val
+        # Now handle juju-prefixed environment variables. The legacy vs new
+        # environment variable usage is mutually exclusive
+        charm_var_val = os.getenv('JUJU_CHARM_{}'.format(var))
+        if charm_var_val:
+            proxy_settings[var] = charm_var_val
+            proxy_settings[var.lower()] = charm_var_val
+    if 'no_proxy' in proxy_settings:
+        if _contains_range(proxy_settings['no_proxy']):
+            log(RANGE_WARNING, level=WARNING)
+    return proxy_settings if proxy_settings else None
+
+
+def _contains_range(addresses):
+    """Check for cidr or wildcard domain in a string.
+
+    Given a string comprising a comma seperated list of ip addresses
+    and domain names, determine whether the string contains IP ranges
+    or wildcard domains.
+
+    :param addresses: comma seperated list of domains and ip addresses.
+    :type addresses: str
+    """
+    return (
+        # Test for cidr (e.g. 10.20.20.0/24)
+        "/" in addresses or
+        # Test for wildcard domains (*.foo.com or .foo.com)
+        "*" in addresses or
+        addresses.startswith(".") or
+        ",." in addresses or
+        " ." in addresses)

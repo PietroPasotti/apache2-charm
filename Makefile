@@ -39,14 +39,13 @@ lint:
 	@flake8 $(HOOKS_DIR) --ignore=E123,E402 --exclude=$(HOOKS_DIR)/charmhelpers && echo hooks OK
 	@flake8 tests --ignore=E123,E402 && echo tests OK
 
-sourcedeps: $(PWD)/config-manager.txt
+sourcedeps:
 	@echo Updating source dependencies...
-	@$(PYTHON) cm.py -c $(PWD)/config-manager.txt \
-		-p $(SOURCEDEPS_DIR) \
-		-t $(PWD)
+	@mkdir -p build
+	@git clone lp:charm-helpers build/charm-helpers
 	@$(PYTHON) build/charm-helpers/tools/charm_helpers_sync/charm_helpers_sync.py \
 		-c charm-helpers.yaml \
-		-b build/charm-helpers \
+		-r build/charm-helpers \
 		-d hooks/charmhelpers
 	@echo Do not forget to commit the updated files if any.
 

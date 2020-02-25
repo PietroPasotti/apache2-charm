@@ -1,5 +1,9 @@
 include:
+    - core.fstab
     - core.hookenv
+    - core.host
+    - core.host_factory.ubuntu
+    - core.strutils
     - fetch
     - contrib.charmsupport
     - osplatform

@@ -1,22 +1,23 @@
 #!/usr/bin/env python2
 
+import ast
+import base64
 import errno
+import grp
 import os
+import os.path
+import pwd
 import re
+import shutil
 import socket
 import subprocess
 import sys
 import yaml
-import base64
-import grp
-import pwd
-import shutil
-import os.path
-import ast
 
+from charmhelpers.contrib.charmsupport import nrpe
 from charmhelpers.core.hookenv import (
-    config as orig_config_get,
     close_port,
+    config as orig_config_get,
     log,
     open_port,
     relation_set,
@@ -25,7 +26,6 @@ from charmhelpers.core.hookenv import (
     status_set,
     unit_get
 )
-from charmhelpers.contrib.charmsupport import nrpe
 from charmhelpers.fetch import apt_update, add_source
 
 ###############################################################################

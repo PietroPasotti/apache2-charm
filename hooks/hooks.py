@@ -1,30 +1,31 @@
 #!/usr/bin/env python2
 
+import ast
+import base64
 import errno
+import grp
 import os
+import os.path
+import pwd
 import re
+import shutil
 import socket
 import subprocess
 import sys
 import yaml
-import base64
-import grp
-import pwd
-import shutil
-import os.path
-import ast
 
+from charmhelpers.contrib.charmsupport import nrpe
 from charmhelpers.core.hookenv import (
-    open_port,
     close_port,
-    log,
     config as orig_config_get,
-    relations_of_type,
+    log,
+    open_port,
     relation_set,
     relation_ids,
+    relations_of_type,
+    status_set,
     unit_get
 )
-from charmhelpers.contrib.charmsupport import nrpe
 from charmhelpers.fetch import apt_update, add_source
 
 ###############################################################################
@@ -291,6 +292,7 @@ def config_get(scope=None):
 
 
 def install_hook():
+    status_set("maintenance", "installing unit")
     apt_source = config_get('apt-source') or ''
     apt_key_id = config_get('apt-key-id') or False
     if apt_source and apt_key_id:
@@ -602,6 +604,7 @@ def enable_mpm(config):
 
 
 def config_changed():
+    status_set("maintenance", "configuring unit")
     relationship_data = {}
     config_data = config_get()
 
@@ -756,6 +759,9 @@ def config_changed():
     if service_apache2("check"):
         if config_data["config_change_command"] in ["reload", "restart"]:
             service_apache2(config_data["config_change_command"])
+    else:
+        status_set("blocked", "service check failed, possible invalid configuration")
+        return
 
     if config_data['openid_provider']:
         if not os.path.exists('/etc/apache2/security'):
@@ -771,6 +777,8 @@ def config_changed():
     ship_logrotate_conf()
     if config_get().changed('servername'):
         logs_relation_joined()
+
+    status_set("active", "Unit is ready")
 
 
 def ensure_disabled(sites):

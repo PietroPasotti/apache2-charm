@@ -296,12 +296,11 @@ apache_openid
   * Tuning. No tuning options are present. Convert apache2.conf to a
     template and expose config options
 
-  * The all_services variable can be passed as part of the http interface and is
+  * The `all_services` variable can be passed as part of the http interface and is
     optional. However its kind of secret and it would be more obvious if a
-    seperate interface was used like http-allservices.
+    separate interface was used like http-allservices.
 
 ## Development
-
 
 The following steps are needed for testing and development of the
 charm, but **not** for deployment:

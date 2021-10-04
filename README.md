@@ -8,54 +8,28 @@ CGI, SSI, IPv6, easy scripting and database integration,
 request/response filtering, many flexible authentication schemes,
 and more.
 
-## Development
-
-
-The following steps are needed for testing and development of the
-charm, but **not** for deployment:
-
-    sudo apt-get install python-software-properties
-    sudo add-apt-repository ppa:chrisjohnston/flake8
-    sudo apt-get update
-    sudo apt-get install python-flake8 python-nose python-coverage \
-                         python-testtools python-pyasn1 python-pyasn1-modules
-
-To fetch additional source dependencies and run the tests:
-
-    make build
-
-... will run the unit tests, run flake8 over the source to warn
-about formatting issues and output a code coverage summary of the
-'hooks.py' module.
-
 ## How to deploy the charm
 
-Assuming you have a copy of the charm into a `charms/$distrocodename/apache2`
-directory relative to your current directory.
-
-... then to perform a deployment execute the following steps:
-
-    juju deploy --repository=charms local:apache2
-    juju set apache2 "vhost_http_template=$(base64 < http_vhost.tmpl)"
-
+    juju deploy apache2
+    juju config apache2 "vhost_http_template=$(base64 < http_vhost.tmpl)"
 
     # and / or
-    juju set apache2 "vhost_https_template=$(base64 < https_vhost.tmpl)"
+    juju config apache2 "vhost_https_template=$(base64 < https_vhost.tmpl)"
 
 If you want a simple `reverseproxy` relation to your services (only
 really useful if you have a single unit on the other side of the
 relation):
 
-    juju add-relation apache2:reverseproxy haproxy:website
+    juju relate apache2:reverseproxy haproxy:website
     # and / or
-    juju add-relation apache2:reverseproxy squid-reverseproxy:cached-website
+    juju relate apache2:reverseproxy squid-reverseproxy:cached-website
 
 Alternatively, you can use the `balancer` relation so that requests
 are load balanced across multiple units of your services. For more information see the section on `Using the balancer relation`:
 
-    juju add-relation apache2:balancer haproxy:website
+    juju relate apache2:balancer haproxy:website
     # and / or
-    juju add-relation apache2:balancer squid-reverseproxy:cached-website
+    juju relate apache2:balancer squid-reverseproxy:cached-website
 
 ## VirtualHost templates
 
@@ -322,6 +296,25 @@ apache_openid
   * Tuning. No tuning options are present. Convert apache2.conf to a
     template and expose config options
 
-  * The all_services variable can be passed as part of the http interface and is
+  * The `all_services` variable can be passed as part of the http interface and is
     optional. However its kind of secret and it would be more obvious if a
-    seperate interface was used like http-allservices.
+    separate interface was used like http-allservices.
+
+## Development
+
+The following steps are needed for testing and development of the
+charm, but **not** for deployment:
+
+    sudo apt-get install python-software-properties
+    sudo add-apt-repository ppa:chrisjohnston/flake8
+    sudo apt-get update
+    sudo apt-get install python-flake8 python-nose python-coverage \
+                         python-testtools python-pyasn1 python-pyasn1-modules
+
+To fetch additional source dependencies and run the tests:
+
+    make build
+
+... will run the unit tests, run flake8 over the source to warn
+about formatting issues and output a code coverage summary of the
+'hooks.py' module.

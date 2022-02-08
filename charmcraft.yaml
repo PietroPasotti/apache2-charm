@@ -1,0 +1,27 @@
+type: charm
+
+bases:
+  - build-on:
+    - name: "ubuntu"
+      channel: "20.04"
+    run-on:
+    - name: "ubuntu"
+      channel: "20.04"
+
+parts:
+  apache2:
+    plugin: dump
+    source: .
+    prime:
+      - charm-helpers.yaml
+      - README.md
+      - config.yaml
+      - copyright
+      - hooks
+      - icon.svg
+      - metadata.yaml
+      - Makefile
+      - setup.cfg
+      - tarmac_tests.sh
+      - data
+      - tests # necessary?
